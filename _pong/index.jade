@@ -1,0 +1,23 @@
+html
+    head
+        a(href="https://fonts.googleapis.com/css?family=Overpass" rel="stylesheet")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" type="text/javascript")
+        a(href="main.styl" type="text/css" rel="stylesheet")
+    body
+        img(src="sidemenu-nut-logo.png")
+        span.title LaborChart Ping Pong Invitational
+        .player-start-bar(data-bind="foreach: players, style: { flexDirection: gameStarted() === false ? 'row' : 'column'}")
+            button.player-icon(data-bind="click: $parent.increment, css: { alt: $index()%2, winner: $data.wins() === 'Winner!' }, disable: $data.wins() === 'Winner!' || $index() === 8")
+                div(data-bind="text: $data.name")
+                div(data-bind="text: $index() === 8 ? 'alternate' : $data.wins")
+        .semifinalists(data-bind="visible: semiFinalists().length > 0, foreach: semiFinalists")
+            button.player-icon(data-bind="click: $parent.increment, css: { alt: $index()%2, winner: $data.wins() === 'Winner!' }, disable: $data.wins() === 'Winner!'")
+                div(data-bind="text: $data.name")
+                div(data-bind="text: $data.wins")
+        .finalists(data-bind="visible: finalists().length > 0, foreach: finalists")
+            button.player-icon(data-bind="click: $parent.increment, css: { alt: 1, winner: $data.wins() === 'Winner!' }, disable: $data.wins() === 'Winner!'")
+                div(data-bind="text: $data.name")
+                div(data-bind="text: $data.wins")
+        .champion(data-bind="visible: champion() != undefined, text: champion() + ' is the winner!!!'")
+        button.button(data-bind="click: startTournament, disable: gameStarted") Start Tournament!
+        script(src="app.js" type="text/javascript")
