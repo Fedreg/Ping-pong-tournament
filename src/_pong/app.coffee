@@ -2,18 +2,9 @@
     
 class App
     constructor: ->
-        @players = ko.observableArray([
-            {name: "Ben B", wins: ko.observable(0)}
-            , {name: "Ben S", wins: ko.observable(0)}
-            , {name: "Erik", wins: ko.observable(0)}
-            , {name: "Fed", wins: ko.observable(0)}
-            , {name: "Hunter", wins: ko.observable(0)}
-            , {name: "Jarek", wins: ko.observable(0)}
-            , {name: "Jonathan", wins: ko.observable(0)}
-            , {name: "Mathew", wins: ko.observable(0)}
-            , {name: "Shawn", wins: ko.observable(0)}
-            ])
-        @roundNumber =ko.observable(1)
+        @players = ko.observableArray([])
+        @getPlayers()
+        @roundNumber = ko.observable(1)
         @semiFinalists = ko.observableArray([])
         @finalists = ko.observableArray([])
         @champion = ko.observable()
@@ -34,6 +25,7 @@ class App
                     newPlayer = {
                         name: player.name
                         wins: ko.observable(0)
+                        id: player.id
                     }
                     if player.wins() == 3
                         @semiFinalists().push(newPlayer)
@@ -44,6 +36,7 @@ class App
                     newPlayer = {
                         name: player.name
                         wins: ko.observable(0)
+                        id: player.id
                     }
                     if player.wins() == 3
                         @finalists().push(newPlayer)
@@ -54,11 +47,14 @@ class App
                     newPlayer = {
                         name: player.name
                         wins: ko.observable(0)
+                        id: player.id
                     }
                     if player.wins() == 3
                         @champion(newPlayer.name)
                         player.wins("Winner!")
-                        @champion(@champion())             
+                        @writeGameStats(newPlayer)
+                        @champion(@champion())    
+       
 
     # Increments win count.
     increment: (player) =>
@@ -77,6 +73,35 @@ class App
         @players(arr)
         @positions(true)
         @gameStarted(true)
+
+    getPlayers: => 
+        horizon = Horizon()
+        horizon.connect()
+        players = horizon("players")
+
+        players.fetch().subscribe(
+            (items) => 
+                for item in items
+                    item.wins = ko.observable(item.wins)
+                    @players().push(item)
+                    @players(@players())
+                    console.log item
+            , (err) => 
+                console.log err
+            )
+        console.log "Players: ", @players()
+
+    writeGameStats: (player) =>
+        horizon = Horizon()
+        horizon.connect()
+        players = horizon("players")
+
+        players.update({
+            id: player.id
+            tournaments_won: (parseInt(player.tournaments_won) + 1)
+            })
+
+    getAllTimeStats: =>
 
 
 ko.applyBindings new App()
