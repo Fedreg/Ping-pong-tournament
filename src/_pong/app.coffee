@@ -10,6 +10,8 @@ class App
         @champion = ko.observable()
         @positions = ko.observable(false)
         @gameStarted = ko.observable(false)
+        @tournamentWins = ko.observable()
+        console.log @players()
         
         # Determines round number.
         @whichRound = ko.computed =>
@@ -26,6 +28,8 @@ class App
                         name: player.name
                         wins: ko.observable(0)
                         id: player.id
+                        tournaments_won: player.tournaments_won
+                        matches_played: ko.observable(player.matches_played())
                     }
                     if player.wins() == 3
                         @semiFinalists().push(newPlayer)
@@ -37,6 +41,8 @@ class App
                         name: player.name
                         wins: ko.observable(0)
                         id: player.id
+                        tournaments_won: player.tournaments_won
+                        matches_played: ko.observable(player.matches_played())
                     }
                     if player.wins() == 3
                         @finalists().push(newPlayer)
@@ -48,18 +54,24 @@ class App
                         name: player.name
                         wins: ko.observable(0)
                         id: player.id
+                        tournaments_won: player.tournaments_won
+                        matches_played: ko.observable(player.matches_played())
                     }
                     if player.wins() == 3
                         @champion(newPlayer.name)
                         player.wins("Winner!")
-                        @writeGameStats(newPlayer)
+                        @writeTournamentsWon(newPlayer)
                         @champion(@champion())    
        
 
-    # Increments win count.
+    # Increments win count. Adds wins to players matches_played DB which we use as total wins
     increment: (player) =>
         player.wins(player.wins() + 1)
-
+        player.matches_played(player.matches_played() + 1)
+        @writeGamesWon(player)
+        console.log "Player: ", player.name
+        console.log "Wins: ", player.matches_played()
+      
     # Shuffles players and displays brackets. Fisher-Yates 
     startTournament: =>
         arr = @players()
@@ -83,25 +95,34 @@ class App
             (items) => 
                 for item in items
                     item.wins = ko.observable(item.wins)
+                    item.matches_played = ko.observable(item.matches_played)
                     @players().push(item)
                     @players(@players())
-                    console.log item
             , (err) => 
                 console.log err
             )
-        console.log "Players: ", @players()
 
-    writeGameStats: (player) =>
+    writeGamesWon: (player) =>
         horizon = Horizon()
         horizon.connect()
         players = horizon("players")
+        newVal = player.matches_played() + 1
 
         players.update({
             id: player.id
-            tournaments_won: (parseInt(player.tournaments_won) + 1)
-            })
+            matches_played: newVal
+        })
 
-    getAllTimeStats: =>
+    writeTournamentsWon: (player) =>
+        horizon = Horizon()
+        horizon.connect()
+        players = horizon("players")
+        newVal = player.tournaments_won + 1
+
+        players.update({
+            id: player.id
+            tournaments_won: newVal
+        })
 
 
 ko.applyBindings new App()
